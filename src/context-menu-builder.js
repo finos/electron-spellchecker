@@ -45,16 +45,11 @@ module.exports = class ContextMenuBuilder {
 
     windowOrWebView = windowOrWebView || BrowserWindow.getFocusedWindow();
 
-    let ctorName = Object.getPrototypeOf(windowOrWebView).constructor.name;
-    if (ctorName === 'WebContents') {
-      this.getWebContents = () => windowOrWebView;
-    } else {
-      // NB: We do this because at the time a WebView is created, it doesn't
-      // have a WebContents, we need to defer the call to getWebContents
-      this.getWebContents = 'webContents' in windowOrWebView ?
-        () => windowOrWebView.webContents :
-        () => windowOrWebView.getWebContents();
-    }
+    // NB: We do this because at the time a WebView is created, it doesn't
+    // have a WebContents, we need to defer the call to getWebContents
+    this.getWebContents = 'webContents' in windowOrWebView ?
+      () => windowOrWebView.webContents :
+      () => windowOrWebView.getWebContents();
   }
 
   /**
