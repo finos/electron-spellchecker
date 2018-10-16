@@ -47,9 +47,7 @@ module.exports = class ContextMenuBuilder {
 
     // NB: We do this because at the time a WebView is created, it doesn't
     // have a WebContents, we need to defer the call to getWebContents
-    this.getWebContents = 'webContents' in windowOrWebView ?
-      () => windowOrWebView.webContents :
-      () => windowOrWebView.getWebContents();
+    this.getWebContents = () => windowOrWebView.webContents;
   }
 
   /**
