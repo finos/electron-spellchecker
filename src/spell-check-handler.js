@@ -1,5 +1,4 @@
 import {spawn} from 'spawn-rx';
-import {requireTaskPool} from 'electron-remote';
 import LRU from 'lru-cache';
 
 import {Subscription} from 'rxjs/Subscription';
@@ -37,11 +36,8 @@ let Spellchecker;
 
 let d = require('debug')('electron-spellchecker:spell-check-handler');
 
-const cld = requireTaskPool(require.resolve('./cld2'));
+const cld = require.resolve('./cld2');
 let fallbackLocaleTable = null;
-let webFrame = (process.type === 'renderer' ?
-  require('electron').webFrame :
-  null);
 
 // NB: Linux and Windows uses underscore in languages (i.e. 'en_US'), whereas
 // we're trying really hard to match the Chromium way of `en-US`
@@ -141,13 +137,6 @@ export default class SpellCheckHandler {
       // NB: OS X does automatic language detection, we're gonna trust it
       this.currentSpellchecker = new Spellchecker();
       this.currentSpellcheckerLanguage = 'en-US';
-
-      if (webFrame) {
-        webFrame.setSpellCheckProvider(
-          this.currentSpellcheckerLanguage,
-          this.shouldAutoCorrect,
-          { spellCheck: this.handleElectronSpellCheck.bind(this) });
-      }
       return;
     }
   }
@@ -292,25 +281,6 @@ export default class SpellCheckHandler {
       .subscribe(async (lang) => {
         d(`New Language is ${lang}`);
       }));
-
-    if (webFrame) {
-      let prevSpellCheckLanguage;
-
-      disp.add(this.currentSpellcheckerChanged
-          .startWith(true)
-        .filter(() => this.currentSpellcheckerLanguage)
-        .subscribe(() => {
-          if (prevSpellCheckLanguage === this.currentSpellcheckerLanguage) return;
-
-          d('Actually installing spell check provider to Electron');
-          webFrame.setSpellCheckProvider(
-            this.currentSpellcheckerLanguage,
-            this.shouldAutoCorrect,
-            { spellCheck: this.handleElectronSpellCheck.bind(this) });
-
-          prevSpellCheckLanguage = this.currentSpellcheckerLanguage;
-        }));
-    }
 
     this.disp.add(disp);
     return disp;

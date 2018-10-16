@@ -1,7 +1,5 @@
-import {clipboard, nativeImage, remote, shell} from 'electron';
+import {clipboard, nativeImage, shell, Menu, MenuItem, BrowserWindow} from 'electron';
 import {truncateString, matchesWord} from './utility';
-
-const {Menu, MenuItem} = remote;
 
 let d = require('debug')('electron-spellchecker:context-menu-builder');
 
@@ -45,7 +43,7 @@ export default class ContextMenuBuilder {
     this.menu = null;
     this.stringTable = Object.assign({}, contextMenuStringTable);
 
-    windowOrWebView = windowOrWebView || remote.getCurrentWebContents();
+    windowOrWebView = windowOrWebView || BrowserWindow.getFocusedWindow();
 
     let ctorName = Object.getPrototypeOf(windowOrWebView).constructor.name;
     if (ctorName === 'WebContents') {
@@ -96,7 +94,7 @@ export default class ContextMenuBuilder {
   async showPopupMenu(contextInfo) {
     let menu = await this.buildMenuForElement(contextInfo);
     if (!menu) return;
-    menu.popup(remote.getCurrentWindow(), { async: true });
+    menu.popup(BrowserWindow.getFocusedWindow(), { async: true });
   }
 
   /**
