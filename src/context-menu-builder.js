@@ -1,7 +1,5 @@
-const {clipboard, nativeImage, remote, shell} = require('electron');
+const {clipboard, nativeImage, shell, Menu, MenuItem, BrowserWindow} = require('electron');
 const {truncateString, matchesWord} = require('./utility');
-
-const {Menu, MenuItem} = remote;
 
 let d = require('debug')('electron-spellchecker:context-menu-builder');
 
@@ -45,7 +43,7 @@ module.exports = class ContextMenuBuilder {
     this.menu = null;
     this.stringTable = Object.assign({}, contextMenuStringTable);
 
-    windowOrWebView = windowOrWebView || remote.getCurrentWebContents();
+    windowOrWebView = windowOrWebView || BrowserWindow.getFocusedWindow();
 
     let ctorName = Object.getPrototypeOf(windowOrWebView).constructor.name;
     if (ctorName === 'WebContents') {
