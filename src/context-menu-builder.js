@@ -43,11 +43,9 @@ module.exports = class ContextMenuBuilder {
     this.menu = null;
     this.stringTable = Object.assign({}, contextMenuStringTable);
 
-    windowOrWebView = windowOrWebView || BrowserWindow.getFocusedWindow();
-
     // NB: We do this because at the time a WebView is created, it doesn't
     // have a WebContents, we need to defer the call to getWebContents
-    this.getWebContents = () => windowOrWebView.webContents;
+    this.getWebContents = () => BrowserWindow.getFocusedWindow() ? BrowserWindow.getFocusedWindow().webContents : undefined;
   }
 
   /**
