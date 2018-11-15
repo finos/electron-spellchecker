@@ -1,6 +1,8 @@
 const {clipboard, nativeImage, shell, Menu, MenuItem, BrowserWindow} = require('electron');
 const {truncateString, matchesWord} = require('./utility');
 
+const request = require('request').defaults({ encoding: null });
+
 let d = require('debug')('electron-spellchecker:context-menu-builder');
 
 const contextMenuStringTable = {
@@ -402,24 +404,18 @@ module.exports = class ContextMenuBuilder {
    *
    * @param  {String} url           The image URL
    * @param  {Function} callback    A callback that will be invoked with the result
-   * @param  {String} outputFormat  The image format to use, defaults to 'image/png'
    */
-  convertImageToBase64(url, callback, outputFormat='image/png') {
-    let canvas = document.createElement('CANVAS');
-    let ctx = canvas.getContext('2d');
-    let img = new Image();
-    img.crossOrigin = 'Anonymous';
-
-    img.onload = () => {
-      canvas.height = img.height;
-      canvas.width = img.width;
-      ctx.drawImage(img, 0, 0);
-
-      let dataURL = canvas.toDataURL(outputFormat);
-      canvas = null;
-      callback(dataURL);
-    };
-
-    img.src = url;
+  convertImageToBase64(url, callback) {
+    if (url.startsWith('data')) {
+      callback(url);
+    }
+    if (url.startsWith('http' || 'https')) {
+      request.get(url, function (error, response, body) {
+        if (!error && response.statusCode === 200) {
+          const data = "data:" + response.headers["content-type"] + ";base64," + new Buffer(body).toString('base64');
+          callback(data);
+        }
+      });
+    }
   }
 }
