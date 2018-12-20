@@ -30,23 +30,6 @@
   </div>
   
   <script>
-  import SpellCheckHandler from '../src/spell-check-handler';
-  import ContextMenuListener from '../src/context-menu-listener';
-  import ContextMenuBuilder from '../src/context-menu-builder';
-  
-  window.spellCheckHandler = new SpellCheckHandler();
-  window.spellCheckHandler.attachToInput();
-  window.spellCheckHandler.currentSpellcheckerChanged.subscribe(() => {
-    document.getElementById('detectedLang').innerText = `Current language is ${window.spellCheckHandler.currentSpellcheckerLanguage}`;
-  });
-  
-  window.spellCheckHandler.provideHintText('This is probably the language that you want to check in');
-  window.spellCheckHandler.autoUnloadDictionariesOnBlur();
-  
-  let contextMenuBuilder = new ContextMenuBuilder(window.spellCheckHandler);
-  let contextMenuListener = new ContextMenuListener(async (info) => {
-    await contextMenuBuilder.showPopupMenu(info);
-  });
   </script>
 </body>
 </html>

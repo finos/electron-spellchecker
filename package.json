@@ -6,11 +6,12 @@
     "doc": "esdoc -c ./esdoc.json",
     "compile": "babel -d lib/ src/",
     "prepublish": "npm run compile",
+    "postinstall": "npm run compile",
     "test-renderer": "electron-mocha --renderer --require ./test/support.js ./test",
     "test-browser": "electron-mocha --browser --require ./test/support.js ./test",
     "test": "npm run test-renderer",
     "node": "cross-env ELECTRON_RUN_AS_NODE=1 ./node_modules/electron-prebuilt-compile/node_modules/.bin/electron",
-    "start": "electron ./example/main.js"
+    "start": "npm run prepublish && electron ./example/main.js"
   },
   "repository": {
     "type": "git",
@@ -40,7 +41,8 @@
     "pify": "^2.3.0",
     "rxjs": "^5.0.1",
     "rxjs-serial-subscription": "^0.1.1",
-    "spawn-rx": "^2.0.7"
+    "spawn-rx": "^2.0.7",
+    "request": "2.88.0"
   },
   "devDependencies": {
     "@kwonoj/rxjs-testscheduler-compat": "0.0.4",

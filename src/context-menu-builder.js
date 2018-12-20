@@ -1,7 +1,7 @@
-import {clipboard, nativeImage, remote, shell} from 'electron';
+import {clipboard, nativeImage, shell, Menu, MenuItem, BrowserWindow} from 'electron';
 import {truncateString, matchesWord} from './utility';
 
-const {Menu, MenuItem} = remote;
+const request = require('request').defaults({ encoding: null });
 
 let d = require('debug')('electron-spellchecker:context-menu-builder');
 
@@ -45,18 +45,10 @@ export default class ContextMenuBuilder {
     this.menu = null;
     this.stringTable = Object.assign({}, contextMenuStringTable);
 
-    windowOrWebView = windowOrWebView || remote.getCurrentWebContents();
-
-    let ctorName = Object.getPrototypeOf(windowOrWebView).constructor.name;
-    if (ctorName === 'WebContents') {
-      this.getWebContents = () => windowOrWebView;
-    } else {
-      // NB: We do this because at the time a WebView is created, it doesn't
-      // have a WebContents, we need to defer the call to getWebContents
-      this.getWebContents = 'webContents' in windowOrWebView ?
-        () => windowOrWebView.webContents :
-        () => windowOrWebView.getWebContents();
-    }
+    windowOrWebView = windowOrWebView || BrowserWindow.getFocusedWindow();
+    // NB: We do this because at the time a WebView is created, it doesn't
+    // have a WebContents, we need to defer the call to getWebContents
+    this.getWebContents = () => windowOrWebView ? windowOrWebView : BrowserWindow.getFocusedWindow().webContents;
   }
 
   /**
@@ -96,7 +88,7 @@ export default class ContextMenuBuilder {
   async showPopupMenu(contextInfo) {
     let menu = await this.buildMenuForElement(contextInfo);
     if (!menu) return;
-    menu.popup(remote.getCurrentWindow(), { async: true });
+    menu.popup(BrowserWindow.getFocusedWindow(), { async: true });
   }
 
   /**
@@ -412,24 +404,18 @@ export default class ContextMenuBuilder {
    *
    * @param  {String} url           The image URL
    * @param  {Function} callback    A callback that will be invoked with the result
-   * @param  {String} outputFormat  The image format to use, defaults to 'image/png'
    */
-  convertImageToBase64(url, callback, outputFormat='image/png') {
-    let canvas = document.createElement('CANVAS');
-    let ctx = canvas.getContext('2d');
-    let img = new Image();
-    img.crossOrigin = 'Anonymous';
-
-    img.onload = () => {
-      canvas.height = img.height;
-      canvas.width = img.width;
-      ctx.drawImage(img, 0, 0);
-
-      let dataURL = canvas.toDataURL(outputFormat);
-      canvas = null;
-      callback(dataURL);
-    };
-
-    img.src = url;
+  convertImageToBase64(url, callback) {
+    if (url.startsWith('data')) {
+      callback(url);
+    }
+    if (url.startsWith('http' || 'https')) {
+      request.get(url, function (error, response, body) {
+        if (!error && response.statusCode === 200) {
+          const data = "data:" + response.headers["content-type"] + ";base64," + new Buffer(body).toString('base64');
+          callback(data);
+        }
+      });
+    }
   }
 }
