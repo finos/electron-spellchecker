@@ -31,7 +31,6 @@
     "@nornagon/spellchecker": "^4.0.7",
     "bcp47": "^1.1.2",
     "debug": "^4.1.1",
-    "electron-remote": "^1.3.0",
     "keyboard-layout": "^2.0.15",
     "lru-cache": "^5.1.1",
     "mkdirp": "^0.5.1",

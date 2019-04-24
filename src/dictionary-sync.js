@@ -10,15 +10,11 @@ require('rxjs/add/operator/toPromise');
 const { fs } = require('./promisify');
 const { normalizeLanguageCode } = require('./utility');
 
-let getURLForHunspellDictionary;
 let d = require('debug')('electron-spellchecker:dictionary-sync');
 
 const app = process.type === 'renderer' ?
   require('electron').remote.app :
   require('electron').app;
-
-const {downloadFileOrUrl} =
-  require('electron-remote').requireTaskPool(require.resolve('electron-remote/remote-ajax'));
 
 /**
  * DictioanrySync handles downloading and saving Hunspell dictionaries. Pass it
@@ -34,8 +30,6 @@ module.exports = class DictionarySync {
    */
   constructor(cacheDir=null) {
     // NB: Require here so that consumers can handle native module exceptions.
-    getURLForHunspellDictionary = require('./node-spellchecker').getURLForHunspellDictionary;
-
     this.cacheDir = cacheDir || path.join(app.getPath('userData'), 'dictionaries');
     mkdirp.sync(this.cacheDir);
   }
@@ -71,45 +65,23 @@ module.exports = class DictionarySync {
     let lang = normalizeLanguageCode(langCode);
     let target = path.join(this.cacheDir, `${lang}.bdic`);
 
-    let fileExists = false;
+    if (cacheOnly) return target;
+
     try {
-      if (fs.existsSync(target)) {
-        fileExists = true;
-
-        d(`Returning local copy: ${target}`);
-        let ret = await fs.readFile(target, {});
-
-        if (ret.length < 8*1024) {
-          throw new Error("File exists but is most likely bogus");
-        }
-
-        return ret;
+      if (!fs.existsSync(target)) {
+        throw new Error(`${lang} is currently not supported`);
       }
+      d(`Returning local copy: ${target}`);
+      let ret = await fs.readFile(target, {});
+
+      if (ret.length < 8*1024) {
+        throw new Error("File exists but is most likely bogus");
+      }
+
+      return ret;
     } catch (e) {
       d(`Failed to read file ${target}: ${e.message}`);
     }
-
-    if (fileExists) {
-      try {
-        await fs.unlink(target);
-      } catch (e) {
-        d("Can't clear out file, bailing");
-        throw e;
-      }
-    }
-
-    let url = getURLForHunspellDictionary(lang);
-    d(`Actually downloading ${url}`);
-    await downloadFileOrUrl(url, target);
-
-    if (cacheOnly) return target;
-
-    let ret = await fs.readFile(target, {});
-    if (ret.length < 8*1024) {
-      throw new Error("File exists but is most likely bogus");
-    }
-
-    return ret;
   }
 
   preloadDictionaries() {
