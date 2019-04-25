@@ -89,7 +89,7 @@ module.exports = class ContextMenuBuilder {
     let menu = await this.buildMenuForElement(contextInfo);
     if (!menu) return;
     const focusedWindow = BrowserWindow.getFocusedWindow();
-    if (!(focusedWindow && typeof focusedWindow.isDestroyed === 'function' && !window.isDestroyed())) {
+    if (!(focusedWindow && typeof focusedWindow.isDestroyed === 'function' && !focusedWindow.isDestroyed())) {
       return;
     }
     menu.popup({ window: focusedWindow });
