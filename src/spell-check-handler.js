@@ -123,9 +123,7 @@ module.exports = class SpellCheckHandler {
     this.currentSpellcheckerChanged = new Subject();
     this.spellCheckInvoked = new Subject();
     this.spellingErrorOccurred = new Subject();
-    this.isMisspelledCache = new LRU({
-      max: 512, maxAge: 4 * 1000
-    });
+    this.isMisspelledCache = new LRU({ max: 5000 });
 
     this.scheduler = scheduler;
     this.shouldAutoCorrect = true;
@@ -270,7 +268,7 @@ module.exports = class SpellCheckHandler {
       .mergeMap(async (langWithoutLocale) => {
         d(`Auto-detected language as ${langWithoutLocale}`);
         let lang = await this.getLikelyLocaleForLanguage(langWithoutLocale);
-        if (lang !== this.currentSpellcheckerLanguage) await this.switchLanguage(lang);
+        if ( (lang !== this.currentSpellcheckerLanguage) || (!this.currentSpellchecker) ) await this.switchLanguage(lang);
 
         return lang;
       })
@@ -359,6 +357,8 @@ module.exports = class SpellCheckHandler {
     let actualLang;
     let dict = null;
 
+    this.isMisspelledCache.reset();
+
     // Set language on macOS
     if (isMac && this.currentSpellchecker) {
       d(`Setting current spellchecker to ${langCode}`);
@@ -367,8 +367,6 @@ module.exports = class SpellCheckHandler {
     }
 
     // Set language on Linux & Windows (Hunspell)
-    this.isMisspelledCache.reset();
-
     try {
       const {dictionary, language} = await this.loadDictionaryForLanguageWithAlternatives(langCode);
       actualLang = language; dict = dictionary;
@@ -435,8 +433,10 @@ module.exports = class SpellCheckHandler {
   }
 
   /**
-   *  The actual callout called by Electron to handle spellchecking
+   *  Sets the SpellCheckProvider on the given WebFrame. Handles API differences
+   *  in Electron.
    *  @private
+   *  @param {*} webFrame
    */
   handleElectronSpellCheck(text) {
     if (!this.currentSpellchecker) return true;
@@ -450,6 +450,29 @@ module.exports = class SpellCheckHandler {
     let result = this.isMisspelled(text);
     if (result) this.spellingErrorOccurred.next(text);
     return !result;
+  }
+
+  /**
+   *  The actual callout called by Electron version 5 and above to handle
+   *  spellchecking.
+   *  @private
+   */
+  handleElectronSpellCheck(words, callback) {
+    if (!this.currentSpellchecker) {
+      callback([]);
+      return;
+    }
+
+    let misspelled = words.filter(w => this.isMisspelled(w));
+
+    if (isMac) {
+      callback(misspelled);
+      return;
+    }
+
+    this.spellCheckInvoked.next(true);
+    misspelled.forEach(w => this.spellingErrorOccurred.next(w));
+    callback(misspelled);
   }
 
   /**
@@ -545,6 +568,7 @@ module.exports = class SpellCheckHandler {
     if (!isMac) return;
     if (!this.currentSpellchecker) return;
 
+    this.isMisspelledCache.reset();
     this.currentSpellchecker.add(text);
   }
 
@@ -623,4 +647,4 @@ module.exports = class SpellCheckHandler {
     d(`Result: ${JSON.stringify(ret)}`);
     return ret;
   }
-}
+};
