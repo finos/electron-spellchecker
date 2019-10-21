@@ -162,7 +162,9 @@ module.exports = class ContextMenuBuilder {
       label: this.stringTable.openLinkUrl(),
       click: () => {
         //d(`Navigating to: ${menuInfo.linkURL}`);
-        shell.openExternal(menuInfo.linkURL);
+        if (menuInfo.linkURL && menuInfo.linkURL.length <= 2083) {
+          shell.openExternal(menuInfo.linkURL);
+        }
       }
     });
 
