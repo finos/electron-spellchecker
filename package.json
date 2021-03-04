@@ -1,6 +1,6 @@
 {
   "name": "electron-spellchecker",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Implement spellchecking, correctly",
   "scripts": {
     "doc": "esdoc -c ./esdoc.json",
@@ -30,7 +30,8 @@
   "main": "src/index.js",
   "homepage": "https://github.com/electron-userland/electron-spellchecker",
   "dependencies": {
-    "@felixrieseberg/spellchecker": "^4.0.10",
+    "@aabuhijleh/electron-remote": "^1.4.0",
+    "@felixrieseberg/spellchecker": "^4.0.12",
     "bcp47": "^1.1.2",
     "cld": "^2.5.1",
     "debug": "^4.1.1",
