@@ -153,8 +153,9 @@ module.exports = class ContextMenuBuilder {
       label: isEmailAddress ? this.stringTable.copyMail() : this.stringTable.copyLinkUrl(),
       click: () => {
         // Omit the mailto: portion of the link; we just want the address
+        const mailToProtocol = 'mailto:';
         clipboard.writeText(isEmailAddress ?
-          menuInfo.linkText : menuInfo.linkURL);
+            menuInfo.linkURL.substr(mailToProtocol.length) : menuInfo.linkURL);
       }
     });
 
