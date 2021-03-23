@@ -298,7 +298,7 @@ module.exports = class ContextMenuBuilder {
     let search = new MenuItem({
       label: this.stringTable.searchGoogle(),
       click: () => {
-        let url = `https://www.google.com/#q=${encodeURIComponent(menuInfo.selectionText)}`;
+        let url = `https://www.google.com/search?q=${encodeURIComponent(menuInfo.selectionText)}`;
 
         //d(`Searching Google using ${url}`);
         shell.openExternal(url);
