@@ -326,13 +326,6 @@ module.exports = class ContextMenuBuilder {
     });
 
     menu.append(copyImage);
-
-    let copyImageUrl = new MenuItem({
-      label: this.stringTable.copyImageUrl(),
-      click: () => clipboard.writeText(menuInfo.srcURL)
-    });
-
-    menu.append(copyImageUrl);
     return menu;
   }
 
