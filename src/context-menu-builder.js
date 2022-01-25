@@ -1,8 +1,6 @@
 const {clipboard, nativeImage, shell, Menu, MenuItem, BrowserWindow} = require('electron');
 const {truncateString, matchesWord} = require('./utility');
 
-const request = require('request').defaults({ encoding: null });
-
 let d = require('debug')('electron-spellchecker:context-menu-builder');
 
 const contextMenuStringTable = {
